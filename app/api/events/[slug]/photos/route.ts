@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { cleanupExpiredPhotos, getPhotoExpiryDate } from "@/lib/photo-expiration";
 import { deletePhotoFromStorage, processAndUploadPhoto } from "@/lib/storage";
 
 const MAX_FILE_BYTES = 15 * 1024 * 1024; // 15MB, celular costuma mandar fotos grandes
@@ -13,18 +14,19 @@ export async function GET(
     return NextResponse.json({ error: "Evento n\u00e3o encontrado." }, { status: 404 });
   }
 
+  await cleanupExpiredPhotos();
+
   const photos = await prisma.photo.findMany({
     where: { eventId: event.id },
     orderBy: { createdAt: "desc" },
     take: 200,
   });
 
-  // keep the approved/public list explicit while leaving room for moderation status later
-  const approvedPhotos = photos.filter((photo) => photo.status !== "REJECTED");
+  const mode = _req.nextUrl.searchParams.get("mode");
+  const visiblePhotos =
+    mode === "moderation" ? photos : photos.filter((photo) => photo.status !== "REJECTED");
 
-  return NextResponse.json({ event, photos: approvedPhotos });
-
-  return NextResponse.json({ event, photos });
+  return NextResponse.json({ event, photos: visiblePhotos });
 }
 
 export async function DELETE(
@@ -68,6 +70,8 @@ export async function POST(
     return NextResponse.json({ error: "Evento n\u00e3o encontrado." }, { status: 404 });
   }
 
+  await cleanupExpiredPhotos();
+
   const currentCount = await prisma.photo.count({ where: { eventId: event.id } });
   if (currentCount >= event.photoLimit) {
     return NextResponse.json(
@@ -107,6 +111,7 @@ export async function POST(
         width,
         height,
         status: "APPROVED",
+        expiresAt: getPhotoExpiryDate(),
       },
     });
 

@@ -34,6 +34,7 @@ model Photo {
   width        Int
   height       Int
   status       PhotoStatus @default(APPROVED)
+  expiresAt    DateTime?
   createdAt    DateTime    @default(now())
 
   @@index([eventId, createdAt])
