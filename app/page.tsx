@@ -67,6 +67,7 @@ export default function HomePage() {
               <div className="inline-actions">
                 <a className="btn-primary" href={galleryUrl}>Open live gallery</a>
                 <a className="btn-secondary" href={uploadUrl}>Guest upload</a>
+                <a className="btn-secondary" href={`/host/${event.slug}/moderate`}>Moderate photos</a>
               </div>
             </div>
 

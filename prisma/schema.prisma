@@ -18,16 +18,23 @@ model Event {
   photos      Photo[]
 }
 
+enum PhotoStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model Photo {
-  id           String   @id @default(cuid())
-  event        Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  id           String      @id @default(cuid())
+  event        Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
   eventId      String
-  guestName    String   @default("Convidado")
+  guestName    String      @default("Convidado")
   imageUrl     String
   thumbnailUrl String
   width        Int
   height       Int
-  createdAt    DateTime @default(now())
+  status       PhotoStatus @default(APPROVED)
+  createdAt    DateTime    @default(now())
 
   @@index([eventId, createdAt])
 }

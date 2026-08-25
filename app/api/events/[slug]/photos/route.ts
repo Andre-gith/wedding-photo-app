@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { processAndUploadPhoto } from "@/lib/storage";
+import { deletePhotoFromStorage, processAndUploadPhoto } from "@/lib/storage";
 
 const MAX_FILE_BYTES = 15 * 1024 * 1024; // 15MB, celular costuma mandar fotos grandes
 
@@ -19,7 +19,44 @@ export async function GET(
     take: 200,
   });
 
+  // keep the approved/public list explicit while leaving room for moderation status later
+  const approvedPhotos = photos.filter((photo) => photo.status !== "REJECTED");
+
+  return NextResponse.json({ event, photos: approvedPhotos });
+
   return NextResponse.json({ event, photos });
+}
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { slug: string } }
+) {
+  const photoId = req.nextUrl.searchParams.get("photoId") || req.nextUrl.searchParams.get("id");
+  if (!photoId) {
+    return NextResponse.json({ error: "Foto não informada." }, { status: 400 });
+  }
+
+  const photo = await prisma.photo.findFirst({
+    where: {
+      id: photoId,
+      event: { slug: params.slug },
+    },
+  });
+
+  if (!photo) {
+    return NextResponse.json({ error: "Foto não encontrada." }, { status: 404 });
+  }
+
+  try {
+    await prisma.photo.delete({ where: { id: photo.id } });
+    await deletePhotoFromStorage(photo.imageUrl, photo.thumbnailUrl).catch((error) => {
+      console.warn("Falha ao remover a foto no storage:", error);
+    });
+    return NextResponse.json({ ok: true, photoId: photo.id });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "Não foi possível excluir a foto." }, { status: 500 });
+  }
 }
 
 export async function POST(
@@ -69,6 +106,7 @@ export async function POST(
         thumbnailUrl,
         width,
         height,
+        status: "APPROVED",
       },
     });
 

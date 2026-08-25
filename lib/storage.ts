@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import sharp from "sharp";
 import { nanoid } from "nanoid";
 
@@ -22,6 +22,29 @@ interface UploadResult {
   thumbnailUrl: string;
   width: number;
   height: number;
+}
+
+export async function deletePhotoFromStorage(imageUrl: string, thumbnailUrl: string) {
+  const baseUrl = (PUBLIC_BASE_URL || "").replace(/\/$/, "");
+  const keys = [imageUrl, thumbnailUrl]
+    .map((url) => {
+      if (!baseUrl || !url.startsWith(`${baseUrl}/`)) return null;
+      return url.replace(`${baseUrl}/`, "");
+    })
+    .filter(Boolean) as string[];
+
+  if (!keys.length) return;
+
+  await Promise.all(
+    keys.map((key) =>
+      s3.send(
+        new DeleteObjectCommand({
+          Bucket: BUCKET,
+          Key: key,
+        })
+      )
+    )
+  );
 }
 
 export async function processAndUploadPhoto(
