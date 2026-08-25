@@ -41,8 +41,16 @@ export default function GalleryPage({ params }: { params: { slug: string } }) {
               <span className="eyebrow">Galeria ao vivo</span>
               <h1>{title || "Galeria"}</h1>
             </div>
-            <div className="gallery-badge">
-              {photos.length} {photos.length === 1 ? "foto" : "fotos"}
+            <div className="inline-actions">
+              <a className="btn-secondary" href={`/e/${params.slug}/upload`}>
+                Enviar foto
+              </a>
+              <a className="btn-secondary" href={`/host/${params.slug}/moderate`}>
+                Moderar fotos
+              </a>
+              <div className="gallery-badge">
+                {photos.length} {photos.length === 1 ? "foto" : "fotos"}
+              </div>
             </div>
           </div>
 

@@ -9,6 +9,7 @@ export default function UploadPage({ params }: { params: { slug: string } }) {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const galleryUrl = `/gallery/${params.slug}`;
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -78,7 +79,15 @@ export default function UploadPage({ params }: { params: { slug: string } }) {
               {sending ? "Enviando…" : "Tirar ou escolher foto"}
             </button>
 
-            {sent && <p className="status success" aria-live="polite">Foto enviada. Obrigado!</p>}
+            <a className="btn-secondary" href={galleryUrl}>
+              Ver galeria
+            </a>
+
+            {sent && (
+              <p className="status success" aria-live="polite">
+                Foto enviada. Obrigado!
+              </p>
+            )}
             {error && <p className="status error" aria-live="assertive">{error}</p>}
           </div>
         </div>
