@@ -60,7 +60,7 @@ export default function ModeratePage({ params }: { params: { slug: string } }) {
         <div className="glass-panel gallery-panel">
           <div className="gallery-header">
             <div>
-              <span className="eyebrow">Moderation</span>
+              <span className="eyebrow">Moderação</span>
               <h1>{title || "Moderar fotos"}</h1>
             </div>
             <a className="btn-secondary" href={`/gallery/${params.slug}`}>

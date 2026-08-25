@@ -58,16 +58,16 @@ export default function HomePage() {
         <div className="page-card">
           <div className="glass-panel hero-panel">
             <div className="hero-panel__content">
-              <div className="eyebrow">Event ready</div>
+              <div className="eyebrow">Evento pronto</div>
               <h1>{event.title}</h1>
               <p className="lead-text">
                 A galeria vai se formando em tempo real enquanto os convidados enviam as fotos do casamento.
               </p>
 
               <div className="inline-actions">
-                <a className="btn-primary" href={galleryUrl}>Open live gallery</a>
-                <a className="btn-secondary" href={uploadUrl}>Guest upload</a>
-                <a className="btn-secondary" href={`/host/${event.slug}/moderate`}>Moderate photos</a>
+                <a className="btn-primary" href={galleryUrl}>Abrir galeria ao vivo</a>
+                <a className="btn-secondary" href={uploadUrl}>Enviar foto</a>
+                <a className="btn-secondary" href={`/host/${event.slug}/moderate`}>Moderar fotos</a>
               </div>
             </div>
 
@@ -76,7 +76,7 @@ export default function HomePage() {
                 {qrDataUrl ? <img className="qr-code" src={qrDataUrl} alt="QR code do evento" /> : null}
               </div>
               <div className="qr-meta">
-                <span className="mini-label">Upload URL</span>
+                <span className="mini-label">URL de upload</span>
                 <code>{uploadUrl}</code>
               </div>
             </div>
@@ -92,7 +92,7 @@ export default function HomePage() {
       <div className="page-card hero-layout">
         <section className="glass-panel hero-panel">
           <div className="hero-panel__content">
-            <div className="eyebrow">Wedding photo booth</div>
+            <div className="eyebrow">Cabine de fotos do casamento</div>
             <h1>Transforme o casamento em uma galeria em tempo real.</h1>
             <p className="lead-text">
               Crie um evento, gere o QR code e deixe convidados mandarem fotos direto do celular com uma experiência moderna e instantânea.
@@ -112,7 +112,7 @@ export default function HomePage() {
             {error ? <p className="status error">{error}</p> : null}
 
             <button className="btn-primary" onClick={handleCreate} disabled={creating}>
-              {creating ? "Creating event…" : "Generate event QR"}
+              {creating ? "Criando evento…" : "Gerar QR do evento"}
             </button>
           </div>
 

@@ -21,7 +21,7 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata = {
-  title: "Wedding Photo Booth",
+  title: "Cabine de Fotos do Casamento",
   description: "Convidados enviam fotos do casamento em tempo real.",
 };
 

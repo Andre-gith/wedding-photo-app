@@ -43,7 +43,7 @@ export default function UploadPage({ params }: { params: { slug: string } }) {
       <div className="page-card" style={{ maxWidth: 540 }}>
         <div className="glass-panel upload-panel">
           <div className="hero-panel__content upload-intro">
-            <span className="eyebrow">Share the moment</span>
+            <span className="eyebrow">Compartilhe o momento</span>
             <h1>Registre esse momento</h1>
             <p className="lead-text">
               A foto vai aparecer na galeria ao vivo do evento em poucos segundos.

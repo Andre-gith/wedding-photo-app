@@ -38,7 +38,7 @@ export default function GalleryPage({ params }: { params: { slug: string } }) {
         <div className="glass-panel gallery-panel">
           <div className="gallery-header">
             <div>
-              <span className="eyebrow">Live gallery</span>
+              <span className="eyebrow">Galeria ao vivo</span>
               <h1>{title || "Galeria"}</h1>
             </div>
             <div className="gallery-badge">
