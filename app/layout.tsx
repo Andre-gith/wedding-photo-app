@@ -1,35 +1,34 @@
 import "./globals.css";
-import { Fraunces, Instrument_Sans, JetBrains_Mono } from "next/font/google";
+import { Space_Grotesk, Inter, IBM_Plex_Mono } from "next/font/google";
 
-const fraunces = Fraunces({
+const display = Space_Grotesk({
   subsets: ["latin"],
-  variable: "--font-heading",
+  variable: "--font-display",
   display: "swap",
 });
 
-const instrumentSans = Instrument_Sans({
+const body = Inter({
   subsets: ["latin"],
   variable: "--font-body",
   display: "swap",
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const mono = IBM_Plex_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
+  weight: ["400", "500", "600"],
   display: "swap",
 });
 
 export const metadata = {
-  title: "Fotos do casamento",
-  description: "Convidados escaneiam o QR e enviam fotos direto do celular.",
+  title: "Wedding Photo Booth",
+  description: "Convidados enviam fotos do casamento em tempo real.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
-      <body
-        className={`${fraunces.variable} ${instrumentSans.variable} ${jetbrainsMono.variable}`}
-      >
+      <body className={`${display.variable} ${body.variable} ${mono.variable}`}>
         {children}
       </body>
     </html>

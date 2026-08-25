@@ -4,6 +4,13 @@ import { useState } from "react";
 import QRCode from "qrcode";
 import FilmStrip from "@/components/FilmStrip";
 
+const previewPhotos = [
+  "https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1529636798458-92182e662485?auto=format&fit=crop&w=900&q=80",
+];
+
 export default function HomePage() {
   const [title, setTitle] = useState("");
   const [creating, setCreating] = useState(false);
@@ -15,7 +22,7 @@ export default function HomePage() {
 
   async function handleCreate() {
     if (!title.trim()) {
-      setError("Digite um nome pro evento.");
+      setError("Digite um nome para o evento.");
       return;
     }
 
@@ -33,7 +40,7 @@ export default function HomePage() {
 
       setEvent(data.event);
       const uploadUrl = `${baseUrl}/e/${data.event.slug}/upload`;
-      const qr = await QRCode.toDataURL(uploadUrl, { width: 400, margin: 1 });
+      const qr = await QRCode.toDataURL(uploadUrl, { width: 420, margin: 2 });
       setQrDataUrl(qr);
     } catch (e: any) {
       setError(e.message || "Algo deu errado.");
@@ -49,39 +56,31 @@ export default function HomePage() {
     return (
       <main className="page-shell">
         <div className="page-card">
-          <div className="card">
-            <FilmStrip top />
-            <div className="card-inner">
-              <div className="hero">
-                <div className="hero__header">
-                  <span className="eyebrow">Cabine instantânea</span>
-                  <h1>{event.title}</h1>
-                  <p className="page-subtitle">
-                    Imprima ou exponha esse QR code no local do evento para receber fotos em tempo real.
-                  </p>
-                </div>
+          <div className="glass-panel hero-panel">
+            <div className="hero-panel__content">
+              <div className="eyebrow">Event ready</div>
+              <h1>{event.title}</h1>
+              <p className="lead-text">
+                A galeria vai se formando em tempo real enquanto os convidados enviam as fotos do casamento.
+              </p>
 
-                <div className="event-qr">
-                  <div className="qr-panel">
-                    {qrDataUrl && (
-                      <img className="qr-code" src={qrDataUrl} alt="QR code do evento" />
-                    )}
-                    <p className="qr-link">{uploadUrl}</p>
-                  </div>
-
-                  <div className="inline-actions">
-                    <a className="btn-primary" href={galleryUrl}>
-                      Ver galeria ao vivo
-                    </a>
-                    <a className="btn-secondary" href={uploadUrl}>
-                      Abrir upload
-                    </a>
-                  </div>
-                </div>
+              <div className="inline-actions">
+                <a className="btn-primary" href={galleryUrl}>Open live gallery</a>
+                <a className="btn-secondary" href={uploadUrl}>Guest upload</a>
               </div>
             </div>
-            <FilmStrip />
+
+            <div className="qr-panel">
+              <div className="qr-panel__frame">
+                {qrDataUrl ? <img className="qr-code" src={qrDataUrl} alt="QR code do evento" /> : null}
+              </div>
+              <div className="qr-meta">
+                <span className="mini-label">Upload URL</span>
+                <code>{uploadUrl}</code>
+              </div>
+            </div>
           </div>
+          <FilmStrip />
         </div>
       </main>
     );
@@ -89,38 +88,45 @@ export default function HomePage() {
 
   return (
     <main className="page-shell">
-      <div className="page-card">
-        <div className="card">
-          <FilmStrip top />
-          <div className="card-inner">
-            <div className="hero__header">
-              <span className="eyebrow">Criar evento</span>
-              <h1 className="page-title">Cabine de fotos do casamento</h1>
-              <p className="page-subtitle">
-                Dê um nome ao evento e gere um QR code para os convidados enviarem fotos direto do celular.
-              </p>
+      <div className="page-card hero-layout">
+        <section className="glass-panel hero-panel">
+          <div className="hero-panel__content">
+            <div className="eyebrow">Wedding photo booth</div>
+            <h1>Transforme o casamento em uma galeria em tempo real.</h1>
+            <p className="lead-text">
+              Crie um evento, gere o QR code e deixe convidados mandarem fotos direto do celular com uma experiência moderna e instantânea.
+            </p>
+
+            <div className="field-group">
+              <label className="field-label" htmlFor="event-name">Nome do evento</label>
+              <input
+                id="event-name"
+                className="field-input"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Ana & Rafael — 14 de novembro"
+              />
             </div>
 
-            <div className="form-grid" style={{ marginTop: 24 }}>
-              <label className="field-group">
-                <span className="field-label">Nome do evento</span>
-                <input
-                  className="field-input"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Ana & Rafael — 14 de novembro"
-                />
-              </label>
+            {error ? <p className="status error">{error}</p> : null}
 
-              {error && <p className="status error">{error}</p>}
-
-              <button className="btn-primary" onClick={handleCreate} disabled={creating}>
-                {creating ? "Criando…" : "Gerar QR code"}
-              </button>
-            </div>
+            <button className="btn-primary" onClick={handleCreate} disabled={creating}>
+              {creating ? "Creating event…" : "Generate event QR"}
+            </button>
           </div>
-          <FilmStrip />
-        </div>
+
+          <div className="photo-mosaic" aria-hidden="true">
+            {previewPhotos.map((src, index) => (
+              <img
+                key={src}
+                src={src}
+                alt=""
+                className={`photo-mosaic__item photo-mosaic__item--${index + 1}`}
+                style={{ transform: `rotate(${index % 2 === 0 ? "-8deg" : "8deg"})` }}
+              />
+            ))}
+          </div>
+        </section>
       </div>
     </main>
   );

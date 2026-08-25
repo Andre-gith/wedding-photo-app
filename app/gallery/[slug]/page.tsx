@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import FilmStrip from "@/components/FilmStrip";
 
 interface Photo {
   id: string;
@@ -35,41 +34,36 @@ export default function GalleryPage({ params }: { params: { slug: string } }) {
 
   return (
     <main className="page-shell">
-      <div className="page-card" style={{ maxWidth: 1080 }}>
-        <div className="card">
-          <FilmStrip top />
-          <div className="card-inner gallery-shell">
-            <div className="hero__header">
-              <span className="eyebrow">Galeria ao vivo</span>
-              <h1 className="page-title" style={{ fontSize: "clamp(2.2rem, 8vw, 4rem)" }}>
-                {title || "Galeria"}
-              </h1>
+      <div className="page-card" style={{ maxWidth: 1120 }}>
+        <div className="glass-panel gallery-panel">
+          <div className="gallery-header">
+            <div>
+              <span className="eyebrow">Live gallery</span>
+              <h1>{title || "Galeria"}</h1>
             </div>
-
-            {photos.length > 0 ? (
-              <div className="gallery-grid">
-                {photos.map((photo, index) => (
-                  <figure
-                    key={photo.id}
-                    className="polaroid"
-                    style={{ transform: `rotate(${(index % 2 === 0 ? -1 : 1) * (index % 4 === 0 ? 2.2 : 1.3)}deg)` }}
-                  >
-                    <span className="tape" aria-hidden="true" />
-                    <img
-                      src={photo.thumbnailUrl}
-                      alt={`Foto de ${photo.guestName}`}
-                    />
-                    <figcaption className="polaroid__caption">{photo.guestName}</figcaption>
-                  </figure>
-                ))}
-              </div>
-            ) : (
-              <div className="empty-state">
-                <p>Nenhuma foto ainda. Quando os convidados enviarem, elas aparecem aqui.</p>
-              </div>
-            )}
+            <div className="gallery-badge">
+              {photos.length} {photos.length === 1 ? "foto" : "fotos"}
+            </div>
           </div>
-          <FilmStrip />
+
+          {photos.length > 0 ? (
+            <div className="gallery-grid">
+              {photos.map((photo, index) => (
+                <figure
+                  key={photo.id}
+                  className="photo-card"
+                  style={{ transform: `rotate(${(index % 2 === 0 ? -1 : 1) * (index % 4 === 0 ? 2.2 : 1.3)}deg)` }}
+                >
+                  <img src={photo.thumbnailUrl} alt={`Foto de ${photo.guestName}`} />
+                  <figcaption>{photo.guestName}</figcaption>
+                </figure>
+              ))}
+            </div>
+          ) : (
+            <div className="empty-state">
+              <p>Nenhuma foto ainda. Quando os convidados enviarem, elas aparecem aqui.</p>
+            </div>
+          )}
         </div>
       </div>
     </main>
