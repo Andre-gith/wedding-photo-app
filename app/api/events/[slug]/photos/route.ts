@@ -5,6 +5,25 @@ import { deletePhotoFromStorage, processAndUploadPhoto } from "@/lib/storage";
 
 const MAX_FILE_BYTES = 15 * 1024 * 1024; // 15MB, celular costuma mandar fotos grandes
 
+async function schemaHasColumn(columnName: string): Promise<boolean> {
+  try {
+    const rows = await prisma.$queryRaw<Array<{ exists: boolean }>>`
+      SELECT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'Photo'
+          AND column_name = ${columnName}
+      ) AS exists;
+    `;
+
+    return Boolean(rows[0]?.exists);
+  } catch (error) {
+    console.warn(`Falha ao verificar a coluna ${columnName} no schema do banco:`, error);
+    return true;
+  }
+}
+
 export async function GET(
   req: NextRequest,
   { params }: { params: { slug: string } }
@@ -28,17 +47,29 @@ export async function GET(
     }
   }
 
+  const hasStatusColumn = await schemaHasColumn("status");
   const photos = await prisma.photo.findMany({
     where: { eventId: event.id },
     orderBy: { createdAt: "desc" },
     take: 200,
+    select: {
+      id: true,
+      guestName: true,
+      imageUrl: true,
+      thumbnailUrl: true,
+      createdAt: true,
+      ...(hasStatusColumn ? { status: true } : {}),
+    } as any,
   });
 
   if (mode === "download") {
-    const approvedPhotos = photos.filter((photo) => photo.status === "APPROVED");
+    const approvedPhotos = hasStatusColumn
+      ? photos.filter((photo: any) => photo.status === "APPROVED")
+      : photos;
+
     return NextResponse.json({
       event,
-      photos: approvedPhotos.map((photo) => ({
+      photos: approvedPhotos.map((photo: any) => ({
         id: photo.id,
         guestName: photo.guestName,
         imageUrl: photo.imageUrl,
@@ -48,7 +79,11 @@ export async function GET(
   }
 
   const visiblePhotos =
-    mode === "moderation" ? photos : photos.filter((photo) => photo.status !== "REJECTED");
+    mode === "moderation"
+      ? photos
+      : hasStatusColumn
+        ? photos.filter((photo: any) => photo.status !== "REJECTED")
+        : photos;
 
   return NextResponse.json({ event, photos: visiblePhotos });
 }
@@ -132,6 +167,9 @@ export async function POST(
       event.slug
     );
 
+    const hasStatusColumn = await schemaHasColumn("status");
+    const hasExpiryColumn = await schemaHasColumn("expiresAt");
+
     const photo = await prisma.photo.create({
       data: {
         eventId: event.id,
@@ -140,9 +178,9 @@ export async function POST(
         thumbnailUrl,
         width,
         height,
-        status: "APPROVED",
-        expiresAt: getPhotoExpiryDate(),
-      },
+        ...(hasStatusColumn ? { status: "APPROVED" } : {}),
+        ...(hasExpiryColumn ? { expiresAt: getPhotoExpiryDate() } : {}),
+      } as any,
     });
 
     return NextResponse.json({ photo }, { status: 201 });
