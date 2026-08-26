@@ -9,6 +9,11 @@ interface Photo {
   createdAt: string;
 }
 
+function getTokenFromUrl(): string {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("hostToken") || params.get("token") || "";
+}
+
 export default function ModeratePage({ params }: { params: { slug: string } }) {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [title, setTitle] = useState("");
@@ -19,8 +24,11 @@ export default function ModeratePage({ params }: { params: { slug: string } }) {
   const [accessError, setAccessError] = useState("");
 
   async function loadPhotos(tokenValue?: string) {
-    const queryToken = new URLSearchParams(window.location.search).get("hostToken") || "";
-    const storageToken = window.localStorage.getItem(`event-host-token:${params.slug}`) || window.sessionStorage.getItem(`event-host-token:${params.slug}`) || "";
+    const queryToken = getTokenFromUrl();
+    const storageToken =
+      window.localStorage.getItem(`event-host-token:${params.slug}`) ||
+      window.sessionStorage.getItem(`event-host-token:${params.slug}`) ||
+      "";
     const token = tokenValue || hostToken || queryToken || storageToken;
     setLoading(true);
 
@@ -31,6 +39,10 @@ export default function ModeratePage({ params }: { params: { slug: string } }) {
       setLoading(false);
       return;
     }
+
+    // Guarda o token assim que descoberto, pra sobreviver a um refresh
+    // de página mesmo que o parâmetro suma da URL depois.
+    window.localStorage.setItem(`event-host-token:${params.slug}`, token);
 
     const res = await fetch(`/api/events/${params.slug}/photos?mode=moderation&hostToken=${encodeURIComponent(token)}`, { cache: "no-store" });
     const data = await res.json();
@@ -50,8 +62,11 @@ export default function ModeratePage({ params }: { params: { slug: string } }) {
   }
 
   useEffect(() => {
-    const queryToken = new URLSearchParams(window.location.search).get("hostToken") || "";
-    const storageToken = window.localStorage.getItem(`event-host-token:${params.slug}`) || window.sessionStorage.getItem(`event-host-token:${params.slug}`) || "";
+    const queryToken = getTokenFromUrl();
+    const storageToken =
+      window.localStorage.getItem(`event-host-token:${params.slug}`) ||
+      window.sessionStorage.getItem(`event-host-token:${params.slug}`) ||
+      "";
     const token = queryToken || storageToken;
     setHostToken(token);
     loadPhotos(token);
