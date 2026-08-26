@@ -13,9 +13,10 @@ const previewPhotos = [
 
 export default function HomePage() {
   const [title, setTitle] = useState("");
+  const [hostEmail, setHostEmail] = useState("");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
-  const [event, setEvent] = useState<{ slug: string; title: string } | null>(null);
+  const [event, setEvent] = useState<{ slug: string; title: string; hostToken?: string } | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState("");
 
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
@@ -33,12 +34,15 @@ export default function HomePage() {
       const res = await fetch("/api/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title }),
+        body: JSON.stringify({ title, hostEmail }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Falha ao criar evento.");
 
       setEvent(data.event);
+      if (data.event?.hostToken) {
+        window.localStorage.setItem(`event-host-token:${data.event.slug}`, data.event.hostToken);
+      }
       const uploadUrl = `${baseUrl}/e/${data.event.slug}/upload`;
       const qr = await QRCode.toDataURL(uploadUrl, { width: 420, margin: 2 });
       setQrDataUrl(qr);
@@ -106,6 +110,18 @@ export default function HomePage() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Ana & Rafael — 14 de novembro"
+              />
+            </div>
+
+            <div className="field-group">
+              <label className="field-label" htmlFor="host-email">E-mail do responsável</label>
+              <input
+                id="host-email"
+                className="field-input"
+                value={hostEmail}
+                onChange={(e) => setHostEmail(e.target.value)}
+                placeholder="voce@email.com"
+                type="email"
               />
             </div>
 

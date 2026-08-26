@@ -14,10 +14,18 @@ export default function ModeratePage({ params }: { params: { slug: string } }) {
   const [title, setTitle] = useState("");
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [hostToken, setHostToken] = useState<string>("");
+  const [downloadBusy, setDownloadBusy] = useState(false);
+
+  useEffect(() => {
+    const token = window.localStorage.getItem(`event-host-token:${params.slug}`) || "";
+    setHostToken(token);
+  }, [params.slug]);
 
   async function loadPhotos() {
     setLoading(true);
-    const res = await fetch(`/api/events/${params.slug}/photos?mode=moderation`, { cache: "no-store" });
+    const token = hostToken || window.localStorage.getItem(`event-host-token:${params.slug}`) || "";
+    const res = await fetch(`/api/events/${params.slug}/photos?mode=moderation&hostToken=${encodeURIComponent(token)}`, { cache: "no-store" });
     const data = await res.json();
     if (!res.ok) {
       setPhotos([]);
@@ -33,7 +41,7 @@ export default function ModeratePage({ params }: { params: { slug: string } }) {
 
   useEffect(() => {
     loadPhotos();
-  }, [params.slug]);
+  }, [params.slug, hostToken]);
 
   async function handleDelete(photoId: string) {
     const confirmed = window.confirm("Tem certeza que deseja excluir esta foto? Essa ação remove a foto do banco e do storage.");
@@ -41,7 +49,7 @@ export default function ModeratePage({ params }: { params: { slug: string } }) {
 
     setBusyId(photoId);
     try {
-      const res = await fetch(`/api/events/${params.slug}/photos?photoId=${photoId}`, {
+      const res = await fetch(`/api/events/${params.slug}/photos?photoId=${photoId}&hostToken=${encodeURIComponent(hostToken)}`, {
         method: "DELETE",
       });
       const data = await res.json();
@@ -54,6 +62,34 @@ export default function ModeratePage({ params }: { params: { slug: string } }) {
     }
   }
 
+  async function handleDownloadApproved() {
+    if (!hostToken) {
+      alert("Acesso restrito ao criador do evento.");
+      return;
+    }
+
+    setDownloadBusy(true);
+    try {
+      const res = await fetch(`/api/events/${params.slug}/photos?mode=download&hostToken=${encodeURIComponent(hostToken)}`, { cache: "no-store" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Não foi possível obter as fotos aprovadas.");
+
+      for (const photo of data.photos || []) {
+        const anchor = document.createElement("a");
+        anchor.href = photo.imageUrl;
+        anchor.download = `${photo.guestName || "foto"}.jpg`;
+        anchor.target = "_blank";
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+      }
+    } catch (error: any) {
+      alert(error.message || "Erro ao baixar as fotos.");
+    } finally {
+      setDownloadBusy(false);
+    }
+  }
+
   return (
     <main className="page-shell">
       <div className="page-card" style={{ maxWidth: 1100 }}>
@@ -63,9 +99,14 @@ export default function ModeratePage({ params }: { params: { slug: string } }) {
               <span className="eyebrow">Moderação</span>
               <h1>{title || "Moderar fotos"}</h1>
             </div>
-            <a className="btn-secondary" href={`/gallery/${params.slug}`}>
-              Ver galeria
-            </a>
+            <div className="inline-actions">
+              <button className="btn-secondary" onClick={handleDownloadApproved} disabled={downloadBusy || !hostToken}>
+                {downloadBusy ? "Baixando…" : "Baixar fotos aprovadas"}
+              </button>
+              <a className="btn-secondary" href={`/gallery/${params.slug}`}>
+                Ver galeria
+              </a>
+            </div>
           </div>
 
           {loading ? (

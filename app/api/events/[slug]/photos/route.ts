@@ -6,7 +6,7 @@ import { deletePhotoFromStorage, processAndUploadPhoto } from "@/lib/storage";
 const MAX_FILE_BYTES = 15 * 1024 * 1024; // 15MB, celular costuma mandar fotos grandes
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: { slug: string } }
 ) {
   const event = await prisma.event.findUnique({ where: { slug: params.slug } });
@@ -16,13 +16,37 @@ export async function GET(
 
   await cleanupExpiredPhotos();
 
+  const mode = req.nextUrl.searchParams.get("mode");
+  const hostToken = req.nextUrl.searchParams.get("hostToken");
+
+  if (mode === "moderation" || mode === "download") {
+    if (!hostToken || event.hostToken !== hostToken) {
+      return NextResponse.json(
+        { error: "Acesso restrito ao criador do evento." },
+        { status: 403 }
+      );
+    }
+  }
+
   const photos = await prisma.photo.findMany({
     where: { eventId: event.id },
     orderBy: { createdAt: "desc" },
     take: 200,
   });
 
-  const mode = _req.nextUrl.searchParams.get("mode");
+  if (mode === "download") {
+    const approvedPhotos = photos.filter((photo) => photo.status === "APPROVED");
+    return NextResponse.json({
+      event,
+      photos: approvedPhotos.map((photo) => ({
+        id: photo.id,
+        guestName: photo.guestName,
+        imageUrl: photo.imageUrl,
+        createdAt: photo.createdAt,
+      })),
+    });
+  }
+
   const visiblePhotos =
     mode === "moderation" ? photos : photos.filter((photo) => photo.status !== "REJECTED");
 
@@ -34,8 +58,14 @@ export async function DELETE(
   { params }: { params: { slug: string } }
 ) {
   const photoId = req.nextUrl.searchParams.get("photoId") || req.nextUrl.searchParams.get("id");
+  const hostToken = req.nextUrl.searchParams.get("hostToken");
   if (!photoId) {
     return NextResponse.json({ error: "Foto não informada." }, { status: 400 });
+  }
+
+  const event = await prisma.event.findUnique({ where: { slug: params.slug } });
+  if (!event || (hostToken && event.hostToken !== hostToken)) {
+    return NextResponse.json({ error: "Acesso restrito ao criador do evento." }, { status: 403 });
   }
 
   const photo = await prisma.photo.findFirst({

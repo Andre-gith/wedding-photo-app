@@ -12,6 +12,7 @@ model Event {
   slug        String   @unique
   title       String
   hostEmail   String?
+  hostToken   String?  @unique
   photoLimit  Int      @default(500)
   isPublished Boolean  @default(true)
   createdAt   DateTime @default(now())
