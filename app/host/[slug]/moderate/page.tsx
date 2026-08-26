@@ -16,32 +16,42 @@ export default function ModeratePage({ params }: { params: { slug: string } }) {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [hostToken, setHostToken] = useState<string>("");
   const [downloadBusy, setDownloadBusy] = useState(false);
+  const [accessError, setAccessError] = useState("");
 
-  useEffect(() => {
-    const token = window.localStorage.getItem(`event-host-token:${params.slug}`) || "";
-    setHostToken(token);
-  }, [params.slug]);
-
-  async function loadPhotos() {
+  async function loadPhotos(tokenValue?: string) {
+    const token = tokenValue || hostToken || window.localStorage.getItem(`event-host-token:${params.slug}`) || "";
     setLoading(true);
-    const token = hostToken || window.localStorage.getItem(`event-host-token:${params.slug}`) || "";
-    const res = await fetch(`/api/events/${params.slug}/photos?mode=moderation&hostToken=${encodeURIComponent(token)}`, { cache: "no-store" });
-    const data = await res.json();
-    if (!res.ok) {
+
+    if (!token) {
+      setAccessError("Acesso restrito ao criador do evento. Abra esta página a partir do evento criado no mesmo navegador.");
       setPhotos([]);
       setTitle("");
       setLoading(false);
       return;
     }
 
+    const res = await fetch(`/api/events/${params.slug}/photos?mode=moderation&hostToken=${encodeURIComponent(token)}`, { cache: "no-store" });
+    const data = await res.json();
+
+    if (!res.ok) {
+      setAccessError(res.status === 403 ? "Acesso restrito ao criador do evento." : data.error || "Não foi possível carregar as fotos.");
+      setPhotos([]);
+      setTitle("");
+      setLoading(false);
+      return;
+    }
+
+    setAccessError("");
     setTitle(data.event.title);
     setPhotos(data.photos || []);
     setLoading(false);
   }
 
   useEffect(() => {
-    loadPhotos();
-  }, [params.slug, hostToken]);
+    const token = window.localStorage.getItem(`event-host-token:${params.slug}`) || "";
+    setHostToken(token);
+    loadPhotos(token);
+  }, [params.slug]);
 
   async function handleDelete(photoId: string) {
     const confirmed = window.confirm("Tem certeza que deseja excluir esta foto? Essa ação remove a foto do banco e do storage.");
@@ -109,7 +119,11 @@ export default function ModeratePage({ params }: { params: { slug: string } }) {
             </div>
           </div>
 
-          {loading ? (
+          {accessError ? (
+            <div className="empty-state">
+              <p>{accessError}</p>
+            </div>
+          ) : loading ? (
             <div className="empty-state">
               <p>Carregando fotos…</p>
             </div>
