@@ -41,7 +41,9 @@ export default function HomePage() {
 
       setEvent(data.event);
       if (data.event?.hostToken) {
-        window.localStorage.setItem(`event-host-token:${data.event.slug}`, data.event.hostToken);
+        const tokenKey = `event-host-token:${data.event.slug}`;
+        window.localStorage.setItem(tokenKey, data.event.hostToken);
+        window.sessionStorage.setItem(tokenKey, data.event.hostToken);
       }
       const uploadUrl = `${baseUrl}/e/${data.event.slug}/upload`;
       const qr = await QRCode.toDataURL(uploadUrl, { width: 420, margin: 2 });
@@ -56,6 +58,9 @@ export default function HomePage() {
   if (event) {
     const uploadUrl = `${baseUrl}/e/${event.slug}/upload`;
     const galleryUrl = `${baseUrl}/gallery/${event.slug}`;
+    const moderationUrl = event.hostToken
+      ? `/host/${event.slug}/moderate?hostToken=${encodeURIComponent(event.hostToken)}`
+      : `/host/${event.slug}/moderate`;
 
     return (
       <main className="page-shell">
@@ -71,7 +76,7 @@ export default function HomePage() {
               <div className="inline-actions">
                 <a className="btn-primary" href={galleryUrl}>Abrir galeria ao vivo</a>
                 <a className="btn-secondary" href={uploadUrl}>Enviar foto</a>
-                <a className="btn-secondary" href={`/host/${event.slug}/moderate`}>Moderar fotos</a>
+                <a className="btn-secondary" href={moderationUrl}>Moderar fotos</a>
               </div>
             </div>
 

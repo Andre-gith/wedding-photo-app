@@ -19,7 +19,9 @@ export default function ModeratePage({ params }: { params: { slug: string } }) {
   const [accessError, setAccessError] = useState("");
 
   async function loadPhotos(tokenValue?: string) {
-    const token = tokenValue || hostToken || window.localStorage.getItem(`event-host-token:${params.slug}`) || "";
+    const queryToken = new URLSearchParams(window.location.search).get("hostToken") || "";
+    const storageToken = window.localStorage.getItem(`event-host-token:${params.slug}`) || window.sessionStorage.getItem(`event-host-token:${params.slug}`) || "";
+    const token = tokenValue || hostToken || queryToken || storageToken;
     setLoading(true);
 
     if (!token) {
@@ -48,7 +50,9 @@ export default function ModeratePage({ params }: { params: { slug: string } }) {
   }
 
   useEffect(() => {
-    const token = window.localStorage.getItem(`event-host-token:${params.slug}`) || "";
+    const queryToken = new URLSearchParams(window.location.search).get("hostToken") || "";
+    const storageToken = window.localStorage.getItem(`event-host-token:${params.slug}`) || window.sessionStorage.getItem(`event-host-token:${params.slug}`) || "";
+    const token = queryToken || storageToken;
     setHostToken(token);
     loadPhotos(token);
   }, [params.slug]);
