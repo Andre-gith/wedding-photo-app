@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 interface Photo {
   id: string;
   guestName: string;
+  imageUrl: string;
   thumbnailUrl: string;
   createdAt: string;
 }
@@ -150,7 +151,7 @@ export default function ModeratePage({ params }: { params: { slug: string } }) {
             <div className="moderation-grid">
               {photos.map((photo) => (
                 <div key={photo.id} className="moderation-card">
-                  <img src={photo.thumbnailUrl} alt={`Foto de ${photo.guestName}`} />
+                  <img src={photo.imageUrl} alt={`Foto de ${photo.guestName}`} />
                   <div className="moderation-card__meta">
                     <span>{photo.guestName}</span>
                     <span>{new Date(photo.createdAt).toLocaleDateString("pt-BR")}</span>
