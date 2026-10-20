@@ -21,8 +21,8 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata = {
-  title: "Cabine de Fotos do Casamento",
-  description: "Convidados enviam fotos do casamento em tempo real.",
+  title: "Laço — Fotos do seu casamento, de todos os ângulos",
+  description: "Crie uma galeria para o seu casamento e reúna as fotos dos convidados com um QR code, sem precisar instalar aplicativo.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

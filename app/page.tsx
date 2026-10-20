@@ -97,59 +97,126 @@ export default function HomePage() {
   }
 
   return (
-    <main className="page-shell">
-      <div className="page-card hero-layout">
-        <section className="glass-panel hero-panel">
-          <div className="hero-panel__content">
-            <div className="eyebrow">Cabine de fotos do casamento</div>
-            <h1>Transforme o casamento em uma galeria em tempo real.</h1>
-            <p className="lead-text">
-              Crie um evento, gere o QR code e deixe convidados mandarem fotos direto do celular com uma experiência moderna e instantânea.
-            </p>
+    <main className="landing-page">
+      <header className="landing-nav">
+        <a className="landing-brand" href="/" aria-label="Laço — início">
+          <span className="landing-brand__mark" aria-hidden="true">l</span>
+          <span>laço</span>
+        </a>
+        <nav className="landing-nav__links" aria-label="Navegação principal">
+          <a href="#como-funciona">Como funciona</a>
+          <a href="#vantagens">Vantagens</a>
+        </nav>
+        <a className="landing-nav__cta" href="#criar">Criar meu evento <span aria-hidden="true">↗</span></a>
+      </header>
 
-            <div className="field-group">
-              <label className="field-label" htmlFor="event-name">Nome do evento</label>
+      <section className="landing-hero">
+        <div className="landing-hero__copy">
+          <div className="landing-kicker"><span aria-hidden="true">✳</span> Cada olhar guarda uma lembrança</div>
+          <h1>O seu grande dia, visto por <em>todos os ângulos.</em></h1>
+          <p className="landing-hero__description">
+            Reúna as fotos dos seus convidados em uma galeria só. É só escanear o QR code e enviar — sem instalar aplicativo.
+          </p>
+
+          <form
+            id="criar"
+            className="landing-create-card"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void handleCreate();
+            }}
+          >
+            <div className="landing-create-card__heading">
+              <span>Crie sua galeria</span>
+            </div>
+            <label className="landing-field">
+              <span>Nome do evento</span>
               <input
-                id="event-name"
-                className="field-input"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Ana & Rafael — 14 de novembro"
+                placeholder="Ex.: Ana & Rafael"
+                autoComplete="off"
+                required
               />
-            </div>
-
-            <div className="field-group">
-              <label className="field-label" htmlFor="host-email">E-mail do responsável</label>
+            </label>
+            <label className="landing-field">
+              <span>Seu e-mail (opcional)</span>
               <input
-                id="host-email"
-                className="field-input"
                 value={hostEmail}
                 onChange={(e) => setHostEmail(e.target.value)}
                 placeholder="voce@email.com"
                 type="email"
+                autoComplete="email"
               />
-            </div>
-
-            {error ? <p className="status error">{error}</p> : null}
-
-            <button className="btn-primary" onClick={handleCreate} disabled={creating}>
-              {creating ? "Criando evento…" : "Gerar QR do evento"}
+            </label>
+            {error ? <p className="landing-error" role="alert">{error}</p> : null}
+            <button className="landing-submit" type="submit" disabled={creating}>
+              {creating ? "Preparando seu evento…" : "Criar minha galeria"}
+              {!creating ? <span aria-hidden="true">→</span> : null}
             </button>
-          </div>
+            <p className="landing-create-card__note">Sem app para baixar. Seus convidados enviam direto pelo celular.</p>
+          </form>
+        </div>
 
-          <div className="photo-mosaic" aria-hidden="true">
-            {previewPhotos.map((src, index) => (
-              <img
-                key={src}
-                src={src}
-                alt=""
-                className={`photo-mosaic__item photo-mosaic__item--${index + 1}`}
-                style={{ transform: `rotate(${index % 2 === 0 ? "-8deg" : "8deg"})` }}
-              />
-            ))}
+        <div className="landing-hero__visual" aria-label="Momentos de um casamento">
+          <div className="landing-photo landing-photo--main">
+            <img src={previewPhotos[0]} alt="Casal celebrando o casamento ao ar livre" />
+            <span className="landing-photo__caption">um dia, mil lembranças</span>
           </div>
-        </section>
-      </div>
+          <div className="landing-photo landing-photo--small">
+            <img src={previewPhotos[2]} alt="Convidados celebrando juntos" />
+          </div>
+          <div className="landing-photo landing-photo--detail">
+            <img src={previewPhotos[1]} alt="Detalhe de uma celebração de casamento" />
+          </div>
+          <div className="landing-live-note">
+            <span className="landing-live-note__icon" aria-hidden="true">↗</span>
+            <span><strong>De todos, para vocês</strong><small>Fotos reunidas em um só lugar</small></span>
+          </div>
+          <span className="landing-spark landing-spark--one" aria-hidden="true">✳</span>
+          <span className="landing-spark landing-spark--two" aria-hidden="true">✳</span>
+        </div>
+      </section>
+
+      <section className="landing-benefits" id="vantagens" aria-label="Vantagens">
+        <div><span aria-hidden="true">⌁</span><p><strong>Sem aplicativo</strong><small>Abre direto no navegador</small></p></div>
+        <div><span aria-hidden="true">▦</span><p><strong>Um QR code</strong><small>Compartilhe com todos</small></p></div>
+        <div><span aria-hidden="true">♡</span><p><strong>Mais lembranças</strong><small>Fotos de cada convidado</small></p></div>
+      </section>
+
+      <section className="landing-steps" id="como-funciona">
+        <div className="landing-section-heading">
+          <span>Simples assim</span>
+          <h2>Mais presença. Menos preocupação.</h2>
+          <p>Todo mundo participa, sem complicação — e vocês aproveitam cada momento.</p>
+        </div>
+        <div className="landing-step-grid">
+          <article className="landing-step">
+            <span className="landing-step__number">01</span>
+            <h3>Crie o evento</h3>
+            <p>Escolha um nome e prepare sua galeria em instantes.</p>
+          </article>
+          <article className="landing-step">
+            <span className="landing-step__number">02</span>
+            <h3>Compartilhe o QR</h3>
+            <p>Coloque o código nas mesas ou envie para os convidados.</p>
+          </article>
+          <article className="landing-step">
+            <span className="landing-step__number">03</span>
+            <h3>Reviva cada instante</h3>
+            <p>As fotos enviadas formam uma galeria para guardar e compartilhar.</p>
+          </article>
+        </div>
+      </section>
+
+      <footer className="landing-footer">
+        <a className="landing-brand" href="/" aria-label="Laço — início">
+          <span className="landing-brand__mark" aria-hidden="true">l</span>
+          <span>laço</span>
+        </a>
+        <span>Feito para guardar o que importa.</span>
+        <a href="#criar">Criar meu evento <span aria-hidden="true">↑</span></a>
+      </footer>
     </main>
   );
 }
