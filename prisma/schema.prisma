@@ -9,15 +9,31 @@ datasource db {
 }
 
 model Event {
-  id          String   @id @default(cuid())
-  slug        String   @unique
-  title       String
-  hostEmail   String?
-  hostToken   String?  @unique
-  photoLimit  Int      @default(500)
-  isPublished Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  photos      Photo[]
+  id                       String        @id @default(cuid())
+  slug                     String        @unique
+  title                    String
+  hostEmail                String?
+  hostToken                String?       @unique
+  photoLimit               Int           @default(500)
+  plan                     EventPlan     @default(LEGACY)
+  paymentStatus            PaymentStatus @default(NOT_REQUIRED)
+  stripeCheckoutSessionId  String?       @unique
+  paidAt                   DateTime?
+  isPublished              Boolean       @default(true)
+  createdAt                DateTime      @default(now())
+  photos                   Photo[]
+}
+
+enum EventPlan {
+  FREE
+  PAID
+  LEGACY
+}
+
+enum PaymentStatus {
+  NOT_REQUIRED
+  PENDING
+  PAID
 }
 
 enum PhotoStatus {

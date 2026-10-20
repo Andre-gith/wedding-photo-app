@@ -131,7 +131,7 @@ export async function POST(
   { params }: { params: { slug: string } }
 ) {
   const event = await prisma.event.findUnique({ where: { slug: params.slug } });
-  if (!event || !event.isPublished) {
+  if (!event || !event.isPublished || event.paymentStatus !== "PAID" && event.plan === "PAID") {
     return NextResponse.json({ error: "Evento n\u00e3o encontrado." }, { status: 404 });
   }
 

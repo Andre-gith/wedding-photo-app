@@ -20,6 +20,16 @@ npm run dev
 
 Abra `http://localhost:3000`, crie um evento e vai gerar o QR apontando pra `/e/<slug>/upload`.
 
+## Planos e pagamentos
+
+- Gratuito: até 100 fotos por evento.
+- Completo: pagamento único de R$ 49,90 por evento, com limite de 2.000 fotos.
+- Eventos existentes antes da migração de cobrança mantêm o limite que já tinham.
+- O checkout usa Stripe Checkout. Configure `STRIPE_SECRET_KEY` e `NEXT_PUBLIC_APP_URL` no ambiente da aplicação. Para a produção na Vercel, adicione também `STRIPE_WEBHOOK_SECRET`.
+- No painel Stripe, crie um webhook para `/api/billing/webhook` ouvindo `checkout.session.completed` e `checkout.session.async_payment_succeeded`.
+- Para testar localmente, execute `stripe listen --forward-to localhost:3000/api/billing/webhook` e use o `whsec_...` exibido pelo Stripe CLI como `STRIPE_WEBHOOK_SECRET`. Use chaves de teste do Stripe durante o desenvolvimento.
+- O evento pago só fica ativo depois da confirmação do pagamento pelo Stripe; não use uma página de retorno como prova de pagamento.
+
 ## Fluxo
 
 1. `/` \u2014 anfitri\u00e3o digita o nome do evento, o app cria o registro no banco e gera o QR (`lib` usa a lib `qrcode`).

@@ -746,11 +746,75 @@ code,
   font-weight: 700;
 }
 
-.landing-create-card__step {
-  color: #a89c90;
-  font-family: var(--font-mono), monospace;
+.landing-plan-picker {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+.landing-plan-picker legend {
+  margin-bottom: 8px;
+  color: var(--landing-muted);
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+.landing-plan-option {
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  border: 1px solid rgba(76, 58, 43, 0.16);
+  border-radius: 9px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.landing-plan-option.is-selected {
+  border-color: var(--landing-rose);
+  background: rgba(169, 95, 86, 0.055);
+}
+
+.landing-plan-option input {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  accent-color: var(--landing-rose);
+}
+
+.landing-plan-option__copy {
+  display: grid;
+  flex: 1;
+  gap: 4px;
+}
+
+.landing-plan-option__copy strong {
+  color: var(--landing-ink);
+  font-size: 0.8rem;
+}
+
+.landing-plan-option__copy small {
+  color: var(--landing-muted);
   font-size: 0.68rem;
-  font-weight: 400;
+}
+
+.landing-plan-option__price {
+  color: var(--landing-ink);
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.landing-payment-notice {
+  max-width: 470px;
+  margin-top: 12px;
+  color: var(--landing-muted);
+  font-size: 0.8rem;
+  line-height: 1.6;
 }
 
 .landing-field {
@@ -1076,6 +1140,12 @@ code,
 .landing-page :focus-visible {
   outline: 3px solid rgba(169, 95, 86, 0.6);
   outline-offset: 3px;
+}
+
+.event-plan-note {
+  color: var(--text-soft);
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 @media (max-width: 900px) {

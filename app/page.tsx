@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import FilmStrip from "@/components/FilmStrip";
 
@@ -14,12 +14,80 @@ const previewPhotos = [
 export default function HomePage() {
   const [title, setTitle] = useState("");
   const [hostEmail, setHostEmail] = useState("");
+  const [plan, setPlan] = useState<"FREE" | "PAID">("FREE");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
-  const [event, setEvent] = useState<{ slug: string; title: string; hostToken?: string } | null>(null);
+  const [paymentNotice, setPaymentNotice] = useState("");
+  const [paymentChecking, setPaymentChecking] = useState(false);
+  const [event, setEvent] = useState<{
+    slug: string;
+    title: string;
+    hostToken?: string;
+    plan?: "FREE" | "PAID" | "LEGACY";
+    photoLimit?: number;
+  } | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState("");
 
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const payment = params.get("payment");
+    if (payment === "cancelled") {
+      setPaymentNotice("O pagamento foi cancelado. Você pode escolher um plano e tentar novamente.");
+      window.history.replaceState({}, "", window.location.pathname);
+      return;
+    }
+
+    const sessionId = params.get("session_id");
+    if (payment !== "success" || !sessionId) return;
+
+    let active = true;
+    setPaymentChecking(true);
+    setPaymentNotice("Verificando a confirmação do pagamento…");
+
+    async function verifyPayment() {
+      try {
+        let res: Response | undefined;
+        for (let attempt = 0; attempt < 6; attempt++) {
+          res = await fetch(`/api/billing/session?session_id=${encodeURIComponent(sessionId!)}`, {
+            cache: "no-store",
+          });
+          if (res.status !== 202) break;
+          await new Promise((resolve) => window.setTimeout(resolve, 2000));
+        }
+
+        const data = await res!.json();
+        if (!res!.ok) throw new Error(data.error || "Não foi possível confirmar o pagamento.");
+        if (!active) return;
+
+        const paidEvent = data.event;
+        const tokenKey = `event-host-token:${paidEvent.slug}`;
+        const hostToken =
+          window.sessionStorage.getItem(tokenKey) ||
+          window.localStorage.getItem(tokenKey) ||
+          undefined;
+        setEvent({ ...paidEvent, hostToken });
+        const uploadUrl = `${window.location.origin}/e/${paidEvent.slug}/upload`;
+        setQrDataUrl(await QRCode.toDataURL(uploadUrl, { width: 420, margin: 2 }));
+        setPaymentNotice("");
+        window.history.replaceState({}, "", window.location.pathname);
+      } catch (err) {
+        if (active) {
+          setPaymentNotice(
+            err instanceof Error ? err.message : "Não foi possível confirmar o pagamento.",
+          );
+        }
+      } finally {
+        if (active) setPaymentChecking(false);
+      }
+    }
+
+    void verifyPayment();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   async function handleCreate() {
     if (!title.trim()) {
@@ -34,22 +102,27 @@ export default function HomePage() {
       const res = await fetch("/api/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, hostEmail }),
+        body: JSON.stringify({ title, hostEmail, plan }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Falha ao criar evento.");
 
-      setEvent(data.event);
       if (data.event?.hostToken) {
         const tokenKey = `event-host-token:${data.event.slug}`;
         window.localStorage.setItem(tokenKey, data.event.hostToken);
         window.sessionStorage.setItem(tokenKey, data.event.hostToken);
       }
+      if (data.checkoutUrl) {
+        window.location.assign(data.checkoutUrl);
+        return;
+      }
+
+      setEvent(data.event);
       const uploadUrl = `${baseUrl}/e/${data.event.slug}/upload`;
       const qr = await QRCode.toDataURL(uploadUrl, { width: 420, margin: 2 });
       setQrDataUrl(qr);
-    } catch (e: any) {
-      setError(e.message || "Algo deu errado.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Algo deu errado.");
     } finally {
       setCreating(false);
     }
@@ -72,6 +145,12 @@ export default function HomePage() {
               <p className="lead-text">
                 A galeria vai se formando em tempo real enquanto os convidados enviam as fotos do casamento.
               </p>
+              {event.plan ? (
+                <p className="event-plan-note">
+                  Plano {event.plan === "PAID" ? "completo" : event.plan === "FREE" ? "gratuito" : "clássico"} ·
+                  {" "}até {event.photoLimit ?? 500} fotos
+                </p>
+              ) : null}
 
               <div className="inline-actions">
                 <a className="btn-primary" href={galleryUrl}>Abrir galeria ao vivo</a>
@@ -129,6 +208,37 @@ export default function HomePage() {
             <div className="landing-create-card__heading">
               <span>Crie sua galeria</span>
             </div>
+            <fieldset className="landing-plan-picker">
+              <legend>Escolha seu plano</legend>
+              <label className={`landing-plan-option ${plan === "FREE" ? "is-selected" : ""}`}>
+                <input
+                  type="radio"
+                  name="plan"
+                  value="FREE"
+                  checked={plan === "FREE"}
+                  onChange={() => setPlan("FREE")}
+                />
+                <span className="landing-plan-option__copy">
+                  <strong>Grátis</strong>
+                  <small>Até 100 fotos por evento</small>
+                </span>
+                <span className="landing-plan-option__price">R$ 0</span>
+              </label>
+              <label className={`landing-plan-option ${plan === "PAID" ? "is-selected" : ""}`}>
+                <input
+                  type="radio"
+                  name="plan"
+                  value="PAID"
+                  checked={plan === "PAID"}
+                  onChange={() => setPlan("PAID")}
+                />
+                <span className="landing-plan-option__copy">
+                  <strong>Completo</strong>
+                  <small>Até 2.000 fotos · pagamento único</small>
+                </span>
+                <span className="landing-plan-option__price">R$ 49,90</span>
+              </label>
+            </fieldset>
             <label className="landing-field">
               <span>Nome do evento</span>
               <input
@@ -151,11 +261,20 @@ export default function HomePage() {
             </label>
             {error ? <p className="landing-error" role="alert">{error}</p> : null}
             <button className="landing-submit" type="submit" disabled={creating}>
-              {creating ? "Preparando seu evento…" : "Criar minha galeria"}
+              {creating
+                ? plan === "PAID" ? "Preparando pagamento…" : "Preparando seu evento…"
+                : plan === "PAID" ? "Continuar para pagamento" : "Criar galeria grátis"}
               {!creating ? <span aria-hidden="true">→</span> : null}
             </button>
-            <p className="landing-create-card__note">Sem app para baixar. Seus convidados enviam direto pelo celular.</p>
+            <p className="landing-create-card__note">
+              Sem aplicativo para baixar. {plan === "PAID" ? "Pagamento único e seguro via Stripe." : "Seus convidados enviam direto pelo celular."}
+            </p>
           </form>
+          {paymentNotice ? (
+            <p className={paymentChecking ? "landing-payment-notice" : "landing-error"} role="status">
+              {paymentNotice}
+            </p>
+          ) : null}
         </div>
 
         <div className="landing-hero__visual" aria-label="Momentos de um casamento">
