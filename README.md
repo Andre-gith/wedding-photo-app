@@ -23,8 +23,8 @@ Abra `http://localhost:3000`, crie um evento e vai gerar o QR apontando pra `/e/
 ## Fluxo
 
 1. `/` \u2014 anfitri\u00e3o digita o nome do evento, o app cria o registro no banco e gera o QR (`lib` usa a lib `qrcode`).
-2. `/e/[slug]/upload` \u2014 p\u00e1gina que abre ao escanear o QR. Bot\u00e3o dispara `<input type="file" capture="environment">`, que no celular abre a c\u00e2mera nativa ou a galeria.
-3. `POST /api/events/[slug]/photos` \u2014 recebe o arquivo, redimensiona e comprime com `sharp`, sobe original + thumbnail pro bucket, grava no Postgres.
+2. `/e/[slug]/upload` \u2014 p\u00e1gina que abre ao escanear o QR. Bot\u00e3o dispara `<input type="file" capture="environment">`, que no celular abre a c\u00e2mera nativa ou a galeria. Fotos acima de 4 MB s\u00e3o reduzidas no navegador para caber no limite de requisi\u00e3o da Vercel; o arquivo original pode ter at\u00e9 15 MB.
+3. `POST /api/events/[slug]/photos` \u2014 recebe a imagem, redimensiona e comprime com `sharp`, sobe original + thumbnail pro bucket e grava no Postgres.
 4. `/gallery/[slug]` \u2014 faz polling a cada 5s na API e mostra a grade de fotos. Pra algo mais real-time, d\u00e1 pra trocar o polling por Server-Sent Events ou Pusher/Ably sem mudar o resto da arquitetura.
 
 ## Onde hospedar
